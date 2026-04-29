@@ -1,0 +1,225 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Extender la librería — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menú">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../en/extending.html" data-lang="en" title="Inglés">EN</a>
+            <a class="nav-btn" href="./extending.html" data-lang="es" aria-pressed="true" title="Español">ES</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Cambiar a modo oscuro" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentación</h4>
+        <a href="./index.html">Vista general</a>
+        <a href="./getting-started.html">Primeros pasos</a>
+        <a href="./ast-reference.html">Referencia del AST</a>
+        <h4>Conceptos</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transformaciones</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker y utilidades</a>
+        <h4>Integración</h4>
+        <a href="./client-integration.html">Integración con clientes</a>
+        <a href="./extending.html">Extender la librería</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>Extender la librería</h1>
+<p class="lede">Más allá de widgets, transformaciones y subclases de renderer, el parser expone hooks más profundos para casos donde esos no alcanzan.</p>
+
+<h2>Reglas propias</h2>
+
+<p>Una regla observa el árbol que se está construyendo y reporta diagnósticos. Subclasifica <code>markast.rules.Rule</code> y sobrescribe los métodos que te interesen:</p>
+
+<pre><code class="language-python">from markast import Parser
+from markast.rules import Diagnostic, Rule, Severity
+
+
+class HeadingMustBeShort(Rule):
+    """Marca headings cuyo texto plano supera los 60 caracteres."""
+
+    name = "short-heading"
+
+    def check_heading_children(self, children, level):
+        text = "".join(c.get("value", "") for c in children
+                       if c.get("type") == "text")
+        if len(text) &gt; 60:
+            return [Diagnostic(
+                code="X100",
+                message=f"Heading demasiado largo ({len(text)} chars).",
+                context=text[:40] + "…",
+                severity=Severity.WARNING,
+            )]
+        return None
+
+
+parser = Parser(rules=[HeadingMustBeShort])</code></pre>
+
+<h3>Códigos de diagnóstico</h3>
+
+<table>
+    <thead><tr><th>Código</th><th>Disparador</th></tr></thead>
+    <tbody>
+    <tr><td>W001</td><td>Imagen dentro de un heading</td></tr>
+    <tr><td>W002</td><td>Elemento block donde se requiere inline</td></tr>
+    <tr><td>W003</td><td>Nombre de widget desconocido</td></tr>
+    <tr><td>W004</td><td>Valor de prop inválido (tipo incorrecto / no está en choices)</td></tr>
+    <tr><td>W005</td><td>Prop requerido faltante</td></tr>
+    <tr><td>W006</td><td>Imagen dentro de una celda de tabla</td></tr>
+    <tr><td>W007</td><td>HTML crudo encontrado (informativo)</td></tr>
+    <tr><td>W008</td><td>Referencia a footnote sin definición</td></tr>
+    <tr><td>W009</td><td>Anidación de widgets más profunda que el límite configurado</td></tr>
+    </tbody>
+</table>
+
+<p>Para <em>reemplazar</em> las reglas builtin (por ejemplo en modo estricto), pasa solo las tuyas. Para <em>extender</em>, incluye <code>BuiltinRules</code>:</p>
+
+<pre><code class="language-python">from markast.rules.builtin import BuiltinRules
+parser = Parser(rules=[BuiltinRules(), HeadingMustBeShort()])</code></pre>
+
+<h2>Ajustar la configuración del parser</h2>
+
+<pre><code class="language-python">from markast import Parser, ParserConfig
+
+cfg = ParserConfig(
+    features=("tables", "strikethrough", "footnotes"),  # sin autolinks/tasklists
+    diagnose_html_blocks=False,
+    max_widget_depth=8,
+)
+
+parser = Parser(cfg)</code></pre>
+
+<p>Usa <code>cfg.evolve(...)</code> para derivar nuevas configuraciones:</p>
+
+<pre><code class="language-python">strict = cfg.evolve(max_widget_depth=4)</code></pre>
+
+<h2>Reemplazar el tokenizer</h2>
+
+<p>Raro, pero posible. <code>Parser</code> construye un <code>Tokenizer</code> de forma perezosa; si necesitas otro (por ejemplo para inyectar plugins extra de <code>markdown-it-py</code>), asígnalo antes del primer parse:</p>
+
+<pre><code class="language-python">from markast import Parser
+from markast.parser.tokenizer import Tokenizer
+from mdit_py_plugins.deflist import deflist_plugin
+
+
+class MyTokenizer(Tokenizer):
+    def _build_markdown_it(self):
+        md = super()._build_markdown_it()
+        md.use(deflist_plugin)
+        return md
+
+
+parser = Parser()
+parser._tokenizer = MyTokenizer(parser.config, parser.registry)</code></pre>
+
+<h2>Patrón: parser por tenant</h2>
+
+<p>Un servicio multi-tenant puede necesitar conjuntos distintos de widgets por tenant. Cachea parsers por id:</p>
+
+<pre><code class="language-python">from functools import lru_cache
+from markast import Parser
+from markast.widgets import default_registry, WidgetRegistry
+
+
+@lru_cache(maxsize=64)
+def parser_for(tenant_id: str) -&gt; Parser:
+    registry = default_registry.clone()
+    for cls in load_tenant_widgets(tenant_id):
+        registry.register(cls)
+    return Parser(registry=registry, transforms=["normalize", "slugify"])
+
+
+def render(tenant_id, markdown):
+    return parser_for(tenant_id).parse(markdown)</code></pre>
+
+<p>Cada parser es independiente — mutar el registry de uno no afecta a los demás.</p>
+
+<h2>Patrón: CI estricto de autoría</h2>
+
+<p>Combina reglas propias con <code>doc.has_errors</code> para fallar una build de CI por contenido inválido:</p>
+
+<pre><code class="language-python">from markast import Parser
+from markast.rules import Diagnostic, Rule, Severity
+
+
+class NoRawHtml(Rule):
+    name = "no-raw-html"
+
+    def check_html_block(self, value):
+        return [Diagnostic(
+            code="C001",
+            message="HTML crudo no permitido en este corpus.",
+            severity=Severity.ERROR,
+        )]
+
+
+parser = Parser(rules=[NoRawHtml()])
+
+doc = parser.parse(open("article.md").read())
+if doc.has_errors:
+    for w in doc.warnings:
+        print(f"::error::[{w['code']}] {w['message']}")
+    raise SystemExit(1)</code></pre>
+
+<h2>Dónde está el código fuente</h2>
+
+<pre><code class="language-text">markast/
+├── ast/         tipos, factories, walker, exportar schema
+├── parser/      tokenizer + builder (block / inline / widget / props)
+├── render/      markdown + html
+├── widgets/     base / registry / builtins
+├── rules/       sistema de diagnósticos + reglas builtin
+├── transforms/  normalize / slugify / toc / linkify / typography
+├── config.py
+├── document.py
+├── parser_api.py
+└── cli.py</code></pre>
+
+<p>Cada archivo empieza con un docstring de módulo. Si te atascas, esa es la entrada más rápida.</p>
+                <div class="page-footer">
+                    <a href="./client-integration.html" class="footer-prev">Integración con clientes</a>
+                    <span></span>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>En esta página</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>

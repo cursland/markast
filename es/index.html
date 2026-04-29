@@ -1,0 +1,147 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Vista general — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menú">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../en/index.html" data-lang="en" title="Inglés">EN</a>
+            <a class="nav-btn" href="./index.html" data-lang="es" aria-pressed="true" title="Español">ES</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Cambiar a modo oscuro" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentación</h4>
+        <a href="./index.html">Vista general</a>
+        <a href="./getting-started.html">Primeros pasos</a>
+        <a href="./ast-reference.html">Referencia del AST</a>
+        <h4>Conceptos</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transformaciones</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker y utilidades</a>
+        <h4>Integración</h4>
+        <a href="./client-integration.html">Integración con clientes</a>
+        <a href="./extending.html">Extender la librería</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <section class="hero">
+    <h1 class="hero-title">Markdown a un <span class="grad">AST tipado</span><br>que cualquier front-end puede renderizar.</h1>
+    <p class="hero-sub"><strong>markast</strong> convierte Markdown en un árbol estructurado y tipado. Todo ocurre dentro de la librería — parseo, validación, recorrido, render. Envías el JSON a cualquier cliente y haces <code>switch</code> sobre <code>type</code>.</p>
+    <div class="hero-cta">
+        <a class="btn btn-primary" href="./getting-started.html">Empezar</a>
+        <a class="btn btn-ghost" href="https://github.com/cursland/markast">Ver en GitHub</a>
+    </div>
+</section>
+
+<h2>Qué obtienes</h2>
+
+<div class="feature-grid">
+    <div class="feature-card">
+        <div class="feature-card-icon">🌳</div>
+        <h3>AST tipado</h3>
+        <p>Cada nodo tiene un <code>type</code> discriminador y campos conocidos. Lo recorres, consultas y mutas sin escribir una sola regex.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-card-icon">🧱</div>
+        <h3>Widgets enchufables</h3>
+        <p>Escribe <code>:::widget</code> en Markdown y llegan al AST como nodos estructurados con props tipados y slots con nombre.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-card-icon">🛡️</div>
+        <h3>Nunca crashea</h3>
+        <p>El contenido inválido produce un diagnóstico, no una excepción. <code>parse</code> siempre devuelve un AST válido.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-card-icon">🔀</div>
+        <h3>Tres formatos de salida</h3>
+        <p>Roundtrip a Markdown, HTML para server-side, o JSON. Tres métodos de un solo paso.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-card-icon">⚙️</div>
+        <h3>Pipeline de transformaciones</h3>
+        <p>Slugs en headings, generar TOC, autolinks, normalizar texto. Encadenables; o escribe los tuyos.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-card-icon">🌐</div>
+        <h3>Agnóstico al front-end</h3>
+        <p>Móvil nativo, React/Vue/Svelte, terminal, HTML plano. Cualquier cosa que pueda hacer <code>switch</code> sobre un string.</p>
+    </div>
+</div>
+
+<h2>Tour de 30 segundos</h2>
+
+<pre><code class="language-bash">pip install markast</code></pre>
+
+<pre><code class="language-python">from markast import parse
+
+doc = parse("""
+# Bienvenido
+
+Un párrafo con **negrita** y un [enlace](https://example.com).
+
+:::tip title="Consejo"
+Markdown sigue funcionando dentro de los widgets.
+:::
+""")
+
+doc.to_json()       # str — envíalo a cualquier cliente
+doc.to_markdown()   # str — roundtrip
+doc.to_html()       # str — render server-side</code></pre>
+
+<h2>¿Por qué un árbol y no HTML?</h2>
+
+<p>El HTML es de un solo sentido. Una vez que el contenido está renderizado, la estructura se pierde: los clientes no pueden estilar headings diferente según plataforma, no pueden reemplazar un <code>:::video</code> con un reproductor nativo, no pueden extraer un TOC sin volver a parsear. Un AST tipado preserva el significado:</p>
+
+<ul>
+    <li>Las apps móviles aplican sus propias reglas de tipografía a los headings.</li>
+    <li>La web renderiza <code>:::video</code> con un player propio; la terminal lo muestra como un enlace.</li>
+    <li>El buscador indexa los mismos nodos estructurados que pinta la UI.</li>
+    <li>El mismo contenido alimenta el sitio de docs, el preview del CMS, y un CLI — sin reescribir.</li>
+</ul>
+                <div class="page-footer">
+                    <span></span>
+                    <a href="./getting-started.html" class="footer-next">Primeros pasos</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>En esta página</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>

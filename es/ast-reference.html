@@ -1,0 +1,208 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Referencia del AST — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menú">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../en/ast-reference.html" data-lang="en" title="Inglés">EN</a>
+            <a class="nav-btn" href="./ast-reference.html" data-lang="es" aria-pressed="true" title="Español">ES</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Cambiar a modo oscuro" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentación</h4>
+        <a href="./index.html">Vista general</a>
+        <a href="./getting-started.html">Primeros pasos</a>
+        <a href="./ast-reference.html">Referencia del AST</a>
+        <h4>Conceptos</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transformaciones</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker y utilidades</a>
+        <h4>Integración</h4>
+        <a href="./client-integration.html">Integración con clientes</a>
+        <a href="./extending.html">Extender la librería</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>Referencia del AST</h1>
+<p class="lede">Especificación de cada tipo de nodo que el parser puede producir. Usa este capítulo cuando escribas un renderer cliente.</p>
+
+<h2>Document (raíz)</h2>
+
+<pre><code class="language-json">{
+  "type":     "document",
+  "version":  "1.0",
+  "warnings": [ {"code": "W001", "message": "...", "context": "..."} ],
+  "children": [ /* nodos block */ ],
+  "meta":     {}
+}</code></pre>
+
+<table>
+    <thead><tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr></thead>
+    <tbody>
+    <tr><td><code>version</code></td><td>string</td><td>Sube cuando hay cambios incompatibles. Actualmente <code>"1.0"</code>.</td></tr>
+    <tr><td><code>warnings</code></td><td>array</td><td>Lista de diagnósticos. Siempre presente (puede estar vacía).</td></tr>
+    <tr><td><code>children</code></td><td>array</td><td>Nodos block. Siempre presente (puede estar vacía).</td></tr>
+    <tr><td><code>meta</code></td><td>object</td><td>Bolsa abierta para que las transformaciones agreguen datos (TOC, slugs, …). Puede estar ausente.</td></tr>
+    </tbody>
+</table>
+
+<h2>Nodos block</h2>
+
+<h3>heading</h3>
+<pre><code class="language-json">{ "type": "heading", "level": 2, "children": [ /* inline */ ], "id": "section-id" }</code></pre>
+<ul>
+    <li><code>level</code> ∈ 1–6.</li>
+    <li><code>id</code> lo añade la transformación <code>slugify</code>; ausente en otro caso.</li>
+    <li>Los hijos inline están restringidos (regla W001). Las imágenes se convierten en su alt text.</li>
+</ul>
+
+<h3>paragraph</h3>
+<pre><code class="language-json">{ "type": "paragraph", "children": [ /* inline */ ] }</code></pre>
+
+<h3>blockquote</h3>
+<pre><code class="language-json">{ "type": "blockquote", "children": [ /* block */ ] }</code></pre>
+
+<h3>code_block</h3>
+<pre><code class="language-json">{
+  "type":            "code_block",
+  "language":        "python",
+  "value":           "print('hi')",
+  "filename":        "main.py",
+  "highlight_lines": [1, 3, 4, 5]
+}</code></pre>
+<p><code>filename</code> y <code>highlight_lines</code> se omiten cuando no aplican.</p>
+
+<h3>image (block)</h3>
+<pre><code class="language-json">{ "type": "image", "src": "https://...", "alt": "descripción", "title": null }</code></pre>
+<p>Se produce cuando una línea de Markdown contiene exactamente una imagen y nada más. Las líneas mixtas producen <code>inline_image</code>.</p>
+
+<h3>list</h3>
+<pre><code class="language-json">{
+  "type":     "list",
+  "ordered":  false,
+  "start":    1,
+  "children": [ /* list_item */ ]
+}</code></pre>
+<p><code>start</code> solo está presente en listas ordenadas.</p>
+
+<h3>list_item</h3>
+<pre><code class="language-json">{
+  "type":     "list_item",
+  "checked":  true,
+  "children": [ /* block o inline */ ]
+}</code></pre>
+<p><code>checked</code> es <code>true</code>/<code>false</code> para items de tasklist GFM, ausente en items normales.</p>
+
+<h3>table, table_row, table_cell</h3>
+<pre><code class="language-json">{
+  "type": "table",
+  "head": { "type": "table_head", "rows": [ /* row */ ] },
+  "body": { "type": "table_body", "rows": [ /* row */ ] }
+}</code></pre>
+<pre><code class="language-json">{
+  "type":      "table_cell",
+  "is_header": true,
+  "align":     "center",
+  "children":  [ /* inline */ ]
+}</code></pre>
+<p><code>align</code> ∈ <code>"left"</code> | <code>"center"</code> | <code>"right"</code> | <code>null</code>. Contenido block dentro de celdas está prohibido (regla W002).</p>
+
+<h3>divider</h3>
+<pre><code class="language-json">{ "type": "divider" }</code></pre>
+
+<h3>widget</h3>
+<pre><code class="language-json">{
+  "type":   "widget",
+  "widget": "tip",
+  "props":  { "title": "Consejo" },
+  "slots":  {
+    "default": [ /* nodos block */ ],
+    "footer":  [ /* nodos block */ ]
+  }
+}</code></pre>
+<p><code>slots</code> siempre contiene la clave <code>"default"</code> (posiblemente un array vacío). Ver el capítulo <a href="./widgets.html">Widgets</a>.</p>
+
+<h3>html_block</h3>
+<pre><code class="language-json">{ "type": "html_block", "value": "&lt;div&gt;raw html&lt;/div&gt;" }</code></pre>
+<p>El parser no interpreta HTML — pasa los bloques tal cual y emite un diagnóstico informativo W007.</p>
+
+<h3>footnote_def</h3>
+<pre><code class="language-json">{ "type": "footnote_def", "label": "1", "children": [ /* block */ ] }</code></pre>
+
+<h2>Nodos inline</h2>
+
+<table>
+    <thead><tr><th>Tipo</th><th>Campos</th></tr></thead>
+    <tbody>
+        <tr><td><code>text</code></td><td><code>value</code> (string)</td></tr>
+        <tr><td><code>bold</code></td><td><code>children</code></td></tr>
+        <tr><td><code>italic</code></td><td><code>children</code></td></tr>
+        <tr><td><code>bold_italic</code></td><td><code>children</code></td></tr>
+        <tr><td><code>code_inline</code></td><td><code>value</code></td></tr>
+        <tr><td><code>strikethrough</code></td><td><code>children</code></td></tr>
+        <tr><td><code>underline</code></td><td><code>children</code></td></tr>
+        <tr><td><code>link</code></td><td><code>href</code>, <code>title</code> (o <code>null</code>), <code>children</code></td></tr>
+        <tr><td><code>inline_image</code></td><td><code>src</code>, <code>alt</code>, <code>title</code></td></tr>
+        <tr><td><code>softbreak</code></td><td>—</td></tr>
+        <tr><td><code>hardbreak</code></td><td>—</td></tr>
+        <tr><td><code>footnote_ref</code></td><td><code>label</code></td></tr>
+    </tbody>
+</table>
+
+<h2>Exportar JSON Schema</h2>
+
+<p>La función <code>markast.json_schema()</code> devuelve un JSON-Schema que describe todo lo anterior. Pásalo a un validador en tu cliente para hacer cumplir la compatibilidad de formas, o aliméntaselo a un generador de código para crear modelos tipados.</p>
+
+<pre><code class="language-python">import json
+from markast import json_schema
+
+with open("ast.schema.json", "w") as f:
+    json.dump(json_schema(), f, indent=2)</code></pre>
+                <div class="page-footer">
+                    <a href="./getting-started.html" class="footer-prev">Primeros pasos</a>
+                    <a href="./widgets.html" class="footer-next">Widgets</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>En esta página</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>

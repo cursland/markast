@@ -1,0 +1,240 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Widgets — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menú">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../en/widgets.html" data-lang="en" title="Inglés">EN</a>
+            <a class="nav-btn" href="./widgets.html" data-lang="es" aria-pressed="true" title="Español">ES</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Cambiar a modo oscuro" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentación</h4>
+        <a href="./index.html">Vista general</a>
+        <a href="./getting-started.html">Primeros pasos</a>
+        <a href="./ast-reference.html">Referencia del AST</a>
+        <h4>Conceptos</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transformaciones</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker y utilidades</a>
+        <h4>Integración</h4>
+        <a href="./client-integration.html">Integración con clientes</a>
+        <a href="./extending.html">Extender la librería</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>Widgets</h1>
+<p class="lede">Los widgets son la manera en que markast lleva componentes ricos y estructurados a través de Markdown hasta el AST.</p>
+
+<h2>Sintaxis</h2>
+
+<pre><code class="language-markdown">:::widget-name key="value" key2=value
+Contenido del cuerpo con soporte completo de **markdown**.
+
+# slot-name
+Contenido de un slot adicional.
+:::</code></pre>
+
+<p>…llega al AST como:</p>
+
+<pre><code class="language-json">{
+  "type":   "widget",
+  "widget": "widget-name",
+  "props":  { "key": "value", "key2": "value" },
+  "slots":  {
+    "default":   [ /* cuerpo */ ],
+    "slot-name": [ /* slot */ ]
+  }
+}</code></pre>
+
+<h2>Widgets builtin</h2>
+
+<table>
+    <thead><tr><th>Widget</th><th>Propósito</th><th>Props notables</th></tr></thead>
+    <tbody>
+    <tr><td><code>tip</code></td><td>Callout amistoso</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>note</code></td><td>Aclaración neutral</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>info</code></td><td>Callout informativo</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>warning</code></td><td>Callout de aviso</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>caution</code></td><td>Aviso más fuerte</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>danger</code></td><td>Aviso de acción destructiva</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>card</code></td><td>Contenedor con header/body/footer</td><td><code>title</code>, <code>color</code>, <code>elevated</code></td></tr>
+    <tr><td><code>video</code></td><td>Embed de video</td><td><code>src</code>*, <code>poster</code>, <code>controls</code>, …</td></tr>
+    <tr><td><code>code-group</code></td><td>Bloques de código en pestañas</td><td><code>default_tab</code></td></tr>
+    <tr><td><code>code-collapse</code></td><td>Bloque colapsable</td><td><code>summary</code>, <code>open</code></td></tr>
+    <tr><td><code>tabs</code></td><td>Pestañas genéricas</td><td><code>default</code>, <code>vertical</code></td></tr>
+    <tr><td><code>steps</code></td><td>Lista de pasos numerados</td><td><code>start</code></td></tr>
+    <tr><td><code>badge</code></td><td>Etiqueta inline</td><td><code>label</code>*, <code>color</code></td></tr>
+    </tbody>
+</table>
+
+<h2>Escribir un widget propio</h2>
+
+<pre><code class="language-python">from markast import BaseWidget, Parser, WidgetParam
+
+
+class CalloutWidget(BaseWidget):
+    """Un callout coloreado simple."""
+
+    name = "callout"
+    params = {
+        "level": WidgetParam(str, default="info",
+                             choices=["info", "warn", "error"],
+                             description="Severidad del callout"),
+        "title": WidgetParam(str, default=None),
+    }
+
+
+parser = Parser(widgets=[CalloutWidget])
+doc = parser.parse(""":::callout level=warn title="Atención"
+Algo **importante**.
+:::""")
+
+print(doc.to_html())</code></pre>
+
+<p>Ese es el contrato completo. La clase base se encarga de parsear el header en props tipados, rellenar defaults, validar choices y emitir diagnósticos W004, validar props requeridos (W005), hacer roundtrip a Markdown, y un render HTML por defecto. Solo sobrescribes lo que necesitas.</p>
+
+<h2>Slots</h2>
+
+<p>El cuerpo de un widget se puede dividir en slots con nombre usando headings <code># slot-name</code> de nivel 1 a la raíz del cuerpo:</p>
+
+<pre><code class="language-markdown">:::card title="Perfil"
+Contenido del slot por defecto.
+
+# header
+Contenido *personalizado* del header.
+
+# footer
+Un footer.
+:::</code></pre>
+
+<p>Para que el widget reconozca los nombres extra de slot, decláralos en la clase:</p>
+
+<pre><code class="language-python">class CardWidget(BaseWidget):
+    name = "card"
+    slots = ["header", "footer"]
+    params = { "title": WidgetParam(str, default=None) }</code></pre>
+
+<p>Si quieres aceptar cualquier nombre de slot (como <code>tabs</code> o <code>steps</code>), deja <code>slots = []</code>.</p>
+
+<h2>Tipos de Param</h2>
+
+<table>
+    <thead><tr><th><code>type_</code></th><th>Valor en Markdown</th><th>Resultado</th></tr></thead>
+    <tbody>
+    <tr><td><code>str</code></td><td><code>key=hola</code></td><td><code>"hola"</code></td></tr>
+    <tr><td><code>str</code></td><td><code>key="varias palabras"</code></td><td><code>"varias palabras"</code></td></tr>
+    <tr><td><code>int</code></td><td><code>count=3</code></td><td><code>3</code></td></tr>
+    <tr><td><code>float</code></td><td><code>ratio=1.5</code></td><td><code>1.5</code></td></tr>
+    <tr><td><code>bool</code></td><td><code>autoplay=true</code></td><td><code>True</code> (también <code>1</code>, <code>yes</code>, <code>on</code>)</td></tr>
+    <tr><td><code>list</code></td><td><code>tags=a,b,c</code></td><td><code>["a", "b", "c"]</code></td></tr>
+    <tr><td><code>list</code></td><td><code>tags=[1,2,3]</code></td><td><code>[1, 2, 3]</code> (forma JSON)</td></tr>
+    <tr><td><code>dict</code></td><td><code>meta={"a":1}</code></td><td><code>{"a": 1}</code> (solo JSON)</td></tr>
+    <tr><td><code>Enum</code></td><td><code>level=high</code></td><td>el miembro de <code>Enum</code> correspondiente</td></tr>
+    </tbody>
+</table>
+
+<p>Validadores propios:</p>
+
+<pre><code class="language-python">WidgetParam(int, default=10,
+            validator=lambda x: None if 1 &lt;= x &lt;= 100 else "debe estar en 1..100")</code></pre>
+
+<h2>Render personalizado</h2>
+
+<pre><code class="language-python">class BadgeWidget(BaseWidget):
+    name = "badge"
+    params = {
+        "label": WidgetParam(str, required=True),
+        "color": WidgetParam(str, default="gray"),
+    }
+
+    def to_html(self, node, render_children):
+        p = node["props"]
+        return f'&lt;span class="badge badge-{p["color"]}"&gt;{p["label"]}&lt;/span&gt;'</code></pre>
+
+<p><code>render_children</code> es un callable que tu widget recibe. Pásale cualquier lista de nodos hijos y te devuelve el string renderizado en el formato del renderer. Úsalo para renderizar slots recursivamente:</p>
+
+<pre><code class="language-python">def to_html(self, node, render_children):
+    body = render_children(node["slots"]["default"])
+    return f'&lt;aside class="callout"&gt;{body}&lt;/aside&gt;'</code></pre>
+
+<h2>Patrones de registro</h2>
+
+<pre><code class="language-python"># 1. Por parser (recomendado) — mantiene el estado local.
+from markast import Parser
+parser = Parser(widgets=[MyWidget])
+
+# 2. Globalmente en el registry por defecto — el parse() top-level lo verá.
+from markast.widgets import default_registry
+default_registry.register(MyWidget)
+
+from markast import parse
+parse(":::my-widget\n...\n:::")</code></pre>
+
+<div class="callout callout-info">
+    <div class="callout-icon">i</div>
+    <div class="callout-body">El patrón 1 es preferible para librerías y servidores — distintos parsers pueden tener distintos widgets sin contaminarse entre sí.</div>
+</div>
+
+<h2>Introspección de schema</h2>
+
+<pre><code class="language-python">CalloutWidget.schema()
+# {
+#   "name": "callout",
+#   "params": {
+#     "level": {"type": "str", "required": False, "default": "info",
+#               "description": "Severidad del callout",
+#               "choices": ["info", "warn", "error"]},
+#     "title": {"type": "str", "required": False}
+#   },
+#   "slots": ["default"],
+#   "doc": "Un callout coloreado simple."
+# }</code></pre>
+                <div class="page-footer">
+                    <a href="./ast-reference.html" class="footer-prev">Referencia del AST</a>
+                    <a href="./transforms.html" class="footer-next">Transformaciones</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>En esta página</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>
