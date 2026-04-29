@@ -1,0 +1,175 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Renderers — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../es/renderers.html" data-lang="es" title="Spanish">ES</a>
+            <a class="nav-btn" href="./renderers.html" data-lang="en" aria-pressed="true" title="English">EN</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentation</h4>
+        <a href="./index.html">Overview</a>
+        <a href="./getting-started.html">Getting started</a>
+        <a href="./ast-reference.html">AST reference</a>
+        <h4>Concepts</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transforms</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker & utilities</a>
+        <h4>Integration</h4>
+        <a href="./client-integration.html">Client integration</a>
+        <a href="./extending.html">Extending</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>Renderers</h1>
+<p class="lede">Two renderers ship in the box: <code>MarkdownRenderer</code> and <code>HTMLRenderer</code>. Both are subclassable Python classes — override individual node handlers to customise output.</p>
+
+<h2>MarkdownRenderer</h2>
+
+<p>Round-trips an AST back into Markdown. Useful for:</p>
+
+<ul>
+    <li>Rendering AST stored in a database back into a textarea / code editor.</li>
+    <li>Re-emitting normalised Markdown after running transforms.</li>
+    <li>Debugging — <code>print(doc.to_markdown())</code> is more readable than the JSON.</li>
+</ul>
+
+<pre><code class="language-python">from markast import MarkdownRenderer, parse
+
+doc = parse("# Hi\n\nA paragraph.")
+print(MarkdownRenderer().render(doc.root))</code></pre>
+
+<p>For convenience, <code>Document.to_markdown()</code> does the same thing.</p>
+
+<h3>Roundtrip stability</h3>
+
+<p><code>parse(text).to_markdown()</code> reproduces the source for every Markdown construct markast supports, with these normalisations:</p>
+
+<ul>
+    <li>Excess blank lines collapse to a single blank line.</li>
+    <li>Setext headings (<code>====</code> underline) become ATX (<code># title</code>).</li>
+    <li>Loose-list marker positions normalise to flush-left.</li>
+    <li>List indentation normalises to 2 spaces per level.</li>
+</ul>
+
+<p>The roundtrip is stable: <code>parse(parse(text).to_markdown()).to_markdown()</code> equals <code>parse(text).to_markdown()</code> for every supported construct.</p>
+
+<h2>HTMLRenderer</h2>
+
+<p>Conservative, opinion-free HTML. No CSS classes are emitted by default beyond the structural ones widgets explicitly add.</p>
+
+<pre><code class="language-python">from markast import HTMLRenderer, parse
+
+doc = parse("# Hi\n\n:::tip\nA tip\n:::")
+print(HTMLRenderer().render(doc.root))</code></pre>
+
+<p>Set <code>wrap_root=True</code> to wrap the output in an <code>&lt;article class="markast"&gt;</code>:</p>
+
+<pre><code class="language-python">HTMLRenderer(wrap_root=True).render(doc.root)
+# &lt;article class="markast"&gt;...&lt;/article&gt;</code></pre>
+
+<h3>Special characters</h3>
+
+<p>Plain <code>text</code> nodes are escaped: <code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code> become <code>&amp;lt;</code>, <code>&amp;gt;</code>, <code>&amp;amp;</code>. Code blocks are escaped the same way. HTML attributes are escaped including <code>"</code>.</p>
+
+<p><code>html_block</code> nodes (raw HTML appearing in source Markdown) are emitted verbatim — the parser already validated nothing about their content. Treat this as opt-in: if your source allows raw HTML, you trust the authors.</p>
+
+<h2>Subclassing</h2>
+
+<p>Both renderers dispatch by method name: <code>_block_&lt;type&gt;</code> for block nodes, <code>_inline_&lt;type&gt;</code> for inline nodes. Override only what you care about:</p>
+
+<pre><code class="language-python">from markast import MarkdownRenderer
+
+
+class FlushDividers(MarkdownRenderer):
+    """Use a stronger divider syntax."""
+
+    def _block_divider(self, node):
+        return "* * *"
+
+
+print(FlushDividers().render(doc.root))</code></pre>
+
+<p><code>HTMLRenderer</code> follows the same convention. Override e.g. <code>_block_heading</code> to emit anchored headings:</p>
+
+<pre><code class="language-python">class AnchoredHTMLRenderer(HTMLRenderer):
+    def _block_heading(self, node):
+        lvl = max(1, min(6, node.get("level", 1)))
+        slug = node.get("id", "")
+        anchor = f'&lt;a href="#{slug}"&gt;#&lt;/a&gt;' if slug else ""
+        body = self._inline(node.get("children", []))
+        return f'&lt;h{lvl} id="{slug}"&gt;{body}{anchor}&lt;/h{lvl}&gt;'</code></pre>
+
+<p>Pair this with the <code>slugify</code> transform so every heading carries an <code>id</code>.</p>
+
+<h2>Custom renderers</h2>
+
+<p>If you want a third format (terminal? a different document model?), the easiest path is to extend the same dispatch pattern:</p>
+
+<pre><code class="language-python">class AnsiRenderer:
+    def render(self, doc):
+        return "".join(self._block(c) for c in doc.get("children", []))
+
+    def _block(self, node):
+        method = getattr(self, f"_block_{node.get('type')}", None)
+        return method(node) if method else ""
+
+    def _block_heading(self, node):
+        text = "".join(c.get("value", "") for c in node["children"])
+        return f"\033[1m{'#' * node['level']} {text}\033[0m\n\n"
+
+    def _block_paragraph(self, node):
+        text = "".join(c.get("value", "") for c in node["children"])
+        return text + "\n\n"</code></pre>
+
+<p>Aim for the same <code>_block_&lt;type&gt;</code> / <code>_inline_&lt;type&gt;</code> convention so your users can extend your renderer the same way they extend the built-in ones.</p>
+                <div class="page-footer">
+                    <a href="./transforms.html" class="footer-prev">Transforms</a>
+                    <a href="./walker.html" class="footer-next">Walker & utilities</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>On this page</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>

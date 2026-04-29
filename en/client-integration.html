@@ -1,0 +1,220 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Client integration — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../es/client-integration.html" data-lang="es" title="Spanish">ES</a>
+            <a class="nav-btn" href="./client-integration.html" data-lang="en" aria-pressed="true" title="English">EN</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentation</h4>
+        <a href="./index.html">Overview</a>
+        <a href="./getting-started.html">Getting started</a>
+        <a href="./ast-reference.html">AST reference</a>
+        <h4>Concepts</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transforms</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker & utilities</a>
+        <h4>Integration</h4>
+        <a href="./client-integration.html">Client integration</a>
+        <a href="./extending.html">Extending</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>Client integration</h1>
+<p class="lede">The standard pattern for shipping markast output to a client — regardless of which technology that client uses. The ideas are the same whether you render with React, Vue, Svelte, native mobile widgets, terminal UIs, or anything else that can <code>switch</code> on a string.</p>
+
+<h2>The pipeline</h2>
+
+<pre><code class="language-text">┌──────────────┐    parse()     ┌──────────┐   to_json()   ┌───────────┐    HTTP    ┌──────────────┐
+│  Markdown    │ ─────────────► │   AST    │ ────────────► │   JSON    │ ─────────► │   Client     │
+│  source      │                │  (dict)  │               │  (string) │            │  renderer    │
+└──────────────┘                └──────────┘               └───────────┘            └──────────────┘</code></pre>
+
+<p>Every step happens server-side. The client receives a typed JSON tree and walks it. The client never parses Markdown.</p>
+
+<h2>A FastAPI handler</h2>
+
+<pre><code class="language-python">from fastapi import FastAPI
+from markast import Parser
+
+app = FastAPI()
+parser = Parser(transforms=["normalize", "slugify", "toc"])
+
+
+@app.get("/content/{slug}")
+def get_content(slug: str):
+    markdown = load_from_db(slug)
+    doc = parser.parse(markdown)
+
+    return {
+        "ast":      doc.to_dict(),
+        "warnings": doc.warnings,
+        "toc":      doc.meta.get("toc", []),
+    }</code></pre>
+
+<p>One parser instance reused across requests. <code>Parser.parse()</code> is thread-safe for read operations.</p>
+
+<h2>Client-side: switch on type</h2>
+
+<p>Pseudocode that ports cleanly to any front-end:</p>
+
+<pre><code class="language-text">function render(node):
+    switch node.type:
+        case "document":   render_each(node.children)
+        case "heading":    return text_with_size(node.level, render_inline(node.children))
+        case "paragraph":  return text(render_inline(node.children))
+        case "list":       return list_view(node.ordered, render_each(node.children))
+        case "list_item":  return list_item(render_each(node.children), checked=node.checked)
+        case "image":      return image(node.src, node.alt)
+        case "code_block": return code(node.language, node.value, filename=node.filename)
+        case "table":      return table(render_table(node.head, node.body))
+        case "blockquote": return quote(render_each(node.children))
+        case "divider":    return divider()
+        case "widget":     return render_widget(node)
+        ...
+
+function render_inline(nodes):
+    parts = []
+    for n in nodes:
+        switch n.type:
+            case "text":           parts.add(plain(n.value))
+            case "bold":           parts.add(bold(render_inline(n.children)))
+            case "italic":         parts.add(italic(render_inline(n.children)))
+            case "code_inline":    parts.add(code_span(n.value))
+            case "link":           parts.add(link(n.href, render_inline(n.children)))
+            case "strikethrough":  parts.add(strike(render_inline(n.children)))
+            case "softbreak":      parts.add(line_break())
+            case "hardbreak":      parts.add(line_break())
+            ...
+    return parts</code></pre>
+
+<p>Concrete code in your front-end framework will look almost identical.</p>
+
+<h2>Widgets on the client</h2>
+
+<p>A <code>widget</code> node lets your content carry custom components. Branch by widget name:</p>
+
+<pre><code class="language-text">function render_widget(node):
+    switch node.widget:
+        case "tip":         return Callout(level="tip",  title=node.props.title, body=render_each(node.slots.default))
+        case "warning":     return Callout(level="warn", title=node.props.title, body=render_each(node.slots.default))
+        case "video":       return Video(src=node.props.src, poster=node.props.poster, controls=node.props.controls)
+        case "card":        return Card(title=node.props.title, header=render_each(node.slots.header or []), body=render_each(node.slots.default), footer=render_each(node.slots.footer or []))
+        case "code-group":  return Tabs(node.slots.default.map(b =&gt; (b.filename, render(b))))
+        default:
+            // Unknown widget — fail open: render the default slot if any, or skip.
+            return render_each(node.slots.default or [])</code></pre>
+
+<h2>Generating client schemas</h2>
+
+<p>If your client language has a strong type system, generate type definitions from <code>json_schema()</code>:</p>
+
+<pre><code class="language-python">import json
+from markast import json_schema
+
+with open("ast.schema.json", "w") as f:
+    json.dump(json_schema(), f, indent=2)</code></pre>
+
+<p>Feed that schema into:</p>
+
+<ul>
+    <li><code>quicktype</code> — Dart, TypeScript, Go, Swift, C#, Kotlin, Rust, …</li>
+    <li><code>datamodel-code-generator</code> — Pydantic / TypedDict</li>
+    <li><code>json-schema-to-typescript</code> — TS interfaces</li>
+</ul>
+
+<h2>Warnings: where to surface them</h2>
+
+<p><code>doc.warnings</code> is the pragma channel between author and content review. Recommended:</p>
+
+<ul>
+    <li>In production responses, drop warnings — clients ignore them anyway.</li>
+    <li>In staging / dev responses, surface them so authors see what's wrong.</li>
+    <li>In a CMS authoring UI, render warnings inline next to the offending source.</li>
+</ul>
+
+<pre><code class="language-python">warnings = doc.warnings if request.app.debug else []
+return {"ast": doc.to_dict(), "warnings": warnings}</code></pre>
+
+<h2>What the AST guarantees</h2>
+
+<table>
+    <thead><tr><th>Invariant</th><th>Why it matters</th></tr></thead>
+    <tbody>
+    <tr><td>Every node has a <code>type</code> string</td><td>Lets the client switch on it</td></tr>
+    <tr><td><code>heading.children</code> never contain images or block-level nodes</td><td>Headings render inline-only</td></tr>
+    <tr><td><code>table_cell.children</code> never contain block-level nodes</td><td>Cells render inline-only</td></tr>
+    <tr><td><code>widget.props</code> is a dict; <code>widget.slots</code> always has a <code>"default"</code> key</td><td>Always safe to destructure</td></tr>
+    <tr><td><code>document.warnings</code> is always an array (may be empty)</td><td>Never <code>null</code></td></tr>
+    <tr><td><code>document.version</code> is a string</td><td>Use for forward-compat checks</td></tr>
+    </tbody>
+</table>
+
+<h2>Caching tip</h2>
+
+<p>If your content rarely changes, parsing on every request is wasteful. Cache the JSON output keyed on the source's hash:</p>
+
+<pre><code class="language-python">import hashlib
+from functools import lru_cache
+
+@lru_cache(maxsize=1024)
+def parse_cached(text_hash, text):
+    return parser.parse(text).to_dict()
+
+
+@app.get("/content/{slug}")
+def get_content(slug):
+    md = load_from_db(slug)
+    h = hashlib.sha256(md.encode("utf-8")).hexdigest()
+    return parse_cached(h, md)</code></pre>
+                <div class="page-footer">
+                    <a href="./walker.html" class="footer-prev">Walker & utilities</a>
+                    <a href="./extending.html" class="footer-next">Extending</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>On this page</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>

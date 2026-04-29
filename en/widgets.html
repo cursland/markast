@@ -1,0 +1,240 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Widgets — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../es/widgets.html" data-lang="es" title="Spanish">ES</a>
+            <a class="nav-btn" href="./widgets.html" data-lang="en" aria-pressed="true" title="English">EN</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentation</h4>
+        <a href="./index.html">Overview</a>
+        <a href="./getting-started.html">Getting started</a>
+        <a href="./ast-reference.html">AST reference</a>
+        <h4>Concepts</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transforms</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker & utilities</a>
+        <h4>Integration</h4>
+        <a href="./client-integration.html">Client integration</a>
+        <a href="./extending.html">Extending</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>Widgets</h1>
+<p class="lede">Widgets are how markast carries rich, structured components through Markdown into the AST.</p>
+
+<h2>Syntax</h2>
+
+<pre><code class="language-markdown">:::widget-name key="value" key2=value
+Body content with full **markdown** support.
+
+# slot-name
+Content of an additional slot.
+:::</code></pre>
+
+<p>…lands in the AST as:</p>
+
+<pre><code class="language-json">{
+  "type":   "widget",
+  "widget": "widget-name",
+  "props":  { "key": "value", "key2": "value" },
+  "slots":  {
+    "default":   [ /* body */ ],
+    "slot-name": [ /* slot */ ]
+  }
+}</code></pre>
+
+<h2>Built-in widgets</h2>
+
+<table>
+    <thead><tr><th>Widget</th><th>Purpose</th><th>Notable props</th></tr></thead>
+    <tbody>
+    <tr><td><code>tip</code></td><td>Friendly callout</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>note</code></td><td>Neutral aside</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>info</code></td><td>Information callout</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>warning</code></td><td>Caution callout</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>caution</code></td><td>Stronger warning</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>danger</code></td><td>Destructive-action warning</td><td><code>title</code>, <code>icon</code></td></tr>
+    <tr><td><code>card</code></td><td>Container with header/body/footer</td><td><code>title</code>, <code>color</code>, <code>elevated</code></td></tr>
+    <tr><td><code>video</code></td><td>Video embed</td><td><code>src</code>*, <code>poster</code>, <code>controls</code>, …</td></tr>
+    <tr><td><code>code-group</code></td><td>Tabbed code blocks</td><td><code>default_tab</code></td></tr>
+    <tr><td><code>code-collapse</code></td><td>Collapsible block</td><td><code>summary</code>, <code>open</code></td></tr>
+    <tr><td><code>tabs</code></td><td>Generic tabbed content</td><td><code>default</code>, <code>vertical</code></td></tr>
+    <tr><td><code>steps</code></td><td>Numbered step list</td><td><code>start</code></td></tr>
+    <tr><td><code>badge</code></td><td>Inline label/pill</td><td><code>label</code>*, <code>color</code></td></tr>
+    </tbody>
+</table>
+
+<h2>Writing a custom widget</h2>
+
+<pre><code class="language-python">from markast import BaseWidget, Parser, WidgetParam
+
+
+class CalloutWidget(BaseWidget):
+    """A simple coloured callout."""
+
+    name = "callout"
+    params = {
+        "level": WidgetParam(str, default="info",
+                             choices=["info", "warn", "error"],
+                             description="Callout severity"),
+        "title": WidgetParam(str, default=None),
+    }
+
+
+parser = Parser(widgets=[CalloutWidget])
+doc = parser.parse(""":::callout level=warn title="Heads up"
+Something **important**.
+:::""")
+
+print(doc.to_html())</code></pre>
+
+<p>That's the entire contract. The base class handles parsing the header into typed props, filling defaults, validating choices and emitting W004 diagnostics, required-prop checks (W005), Markdown roundtrip, and a default HTML render. You only override what you need.</p>
+
+<h2>Slots</h2>
+
+<p>A widget body can be split into named slots using bare <code># slot-name</code> H1 headings at the root of the body:</p>
+
+<pre><code class="language-markdown">:::card title="Profile"
+Some default body content.
+
+# header
+*Custom* header content.
+
+# footer
+A footer.
+:::</code></pre>
+
+<p>For a widget to acknowledge the extra slot names, declare them on the class:</p>
+
+<pre><code class="language-python">class CardWidget(BaseWidget):
+    name = "card"
+    slots = ["header", "footer"]
+    params = { "title": WidgetParam(str, default=None) }</code></pre>
+
+<p>If you want to accept any slot names (e.g. for <code>tabs</code> or <code>steps</code>), leave <code>slots = []</code>.</p>
+
+<h2>Param types</h2>
+
+<table>
+    <thead><tr><th><code>type_</code></th><th>Markdown value</th><th>Result</th></tr></thead>
+    <tbody>
+    <tr><td><code>str</code></td><td><code>key=hi</code></td><td><code>"hi"</code></td></tr>
+    <tr><td><code>str</code></td><td><code>key="multi word"</code></td><td><code>"multi word"</code></td></tr>
+    <tr><td><code>int</code></td><td><code>count=3</code></td><td><code>3</code></td></tr>
+    <tr><td><code>float</code></td><td><code>ratio=1.5</code></td><td><code>1.5</code></td></tr>
+    <tr><td><code>bool</code></td><td><code>autoplay=true</code></td><td><code>True</code> (also <code>1</code>, <code>yes</code>, <code>on</code>)</td></tr>
+    <tr><td><code>list</code></td><td><code>tags=a,b,c</code></td><td><code>["a", "b", "c"]</code></td></tr>
+    <tr><td><code>list</code></td><td><code>tags=[1,2,3]</code></td><td><code>[1, 2, 3]</code> (JSON form)</td></tr>
+    <tr><td><code>dict</code></td><td><code>meta={"a":1}</code></td><td><code>{"a": 1}</code> (JSON only)</td></tr>
+    <tr><td><code>Enum</code></td><td><code>level=high</code></td><td>matching <code>Enum</code> member</td></tr>
+    </tbody>
+</table>
+
+<p>Custom validators:</p>
+
+<pre><code class="language-python">WidgetParam(int, default=10,
+            validator=lambda x: None if 1 &lt;= x &lt;= 100 else "must be 1..100")</code></pre>
+
+<h2>Custom rendering</h2>
+
+<pre><code class="language-python">class BadgeWidget(BaseWidget):
+    name = "badge"
+    params = {
+        "label": WidgetParam(str, required=True),
+        "color": WidgetParam(str, default="gray"),
+    }
+
+    def to_html(self, node, render_children):
+        p = node["props"]
+        return f'&lt;span class="badge badge-{p["color"]}"&gt;{p["label"]}&lt;/span&gt;'</code></pre>
+
+<p><code>render_children</code> is a callable handed to your widget. Pass any list of child nodes and you get back the rendered string in the renderer's target format. Use it to render slot contents recursively:</p>
+
+<pre><code class="language-python">def to_html(self, node, render_children):
+    body = render_children(node["slots"]["default"])
+    return f'&lt;aside class="callout"&gt;{body}&lt;/aside&gt;'</code></pre>
+
+<h2>Registration patterns</h2>
+
+<pre><code class="language-python"># 1. Per-parser (recommended) — keeps state local.
+from markast import Parser
+parser = Parser(widgets=[MyWidget])
+
+# 2. Globally on the default registry — then the top-level parse() works.
+from markast.widgets import default_registry
+default_registry.register(MyWidget)
+
+from markast import parse
+parse(":::my-widget\n...\n:::")</code></pre>
+
+<div class="callout callout-info">
+    <div class="callout-icon">i</div>
+    <div class="callout-body">Pattern 1 is preferred for libraries and servers — different parsers can hold different widget sets without cross-contamination.</div>
+</div>
+
+<h2>Schema introspection</h2>
+
+<pre><code class="language-python">CalloutWidget.schema()
+# {
+#   "name": "callout",
+#   "params": {
+#     "level": {"type": "str", "required": False, "default": "info",
+#               "description": "Callout severity",
+#               "choices": ["info", "warn", "error"]},
+#     "title": {"type": "str", "required": False}
+#   },
+#   "slots": ["default"],
+#   "doc": "A simple coloured callout."
+# }</code></pre>
+                <div class="page-footer">
+                    <a href="./ast-reference.html" class="footer-prev">AST reference</a>
+                    <a href="./transforms.html" class="footer-next">Transforms</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>On this page</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>

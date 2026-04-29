@@ -1,0 +1,172 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Getting started — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../es/getting-started.html" data-lang="es" title="Spanish">ES</a>
+            <a class="nav-btn" href="./getting-started.html" data-lang="en" aria-pressed="true" title="English">EN</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentation</h4>
+        <a href="./index.html">Overview</a>
+        <a href="./getting-started.html">Getting started</a>
+        <a href="./ast-reference.html">AST reference</a>
+        <h4>Concepts</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transforms</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker & utilities</a>
+        <h4>Integration</h4>
+        <a href="./client-integration.html">Client integration</a>
+        <a href="./extending.html">Extending</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>Getting started</h1>
+<p class="lede">The shortest possible path from "I just installed markast" to "I'm shipping content to my client app." Everything here uses defaults; later chapters cover configuration.</p>
+
+<h2>Install</h2>
+
+<pre><code class="language-bash">pip install markast</code></pre>
+
+<p>Optional extras:</p>
+
+<ul>
+    <li><code>pip install markast[test]</code> — pulls in <code>pytest</code> for running the test suite.</li>
+    <li><code>pip install linkify-it-py</code> — required if you want bare-URL detection (the <code>autolinks</code> feature). Without it, that one feature is silently disabled — everything else still works.</li>
+</ul>
+
+<h2>Parse some Markdown</h2>
+
+<pre><code class="language-python">from markast import parse
+
+doc = parse("# Hello\n\nA paragraph with **bold** and a [link](https://example.com).")
+
+print(doc.to_json(indent=2))</code></pre>
+
+<p>Output (abbreviated):</p>
+
+<pre><code class="language-json">{
+  "type": "document",
+  "version": "1.0",
+  "warnings": [],
+  "children": [
+    { "type": "heading", "level": 1, "children": [
+        { "type": "text", "value": "Hello" }
+    ] },
+    { "type": "paragraph", "children": [
+        { "type": "text", "value": "A paragraph with " },
+        { "type": "bold", "children": [
+            { "type": "text", "value": "bold" }
+        ] },
+        { "type": "text", "value": " and a " },
+        { "type": "link", "href": "https://example.com", "title": null,
+          "children": [ { "type": "text", "value": "link" } ] },
+        { "type": "text", "value": "." }
+      ] }
+  ]
+}</code></pre>
+
+<p>That's the entire API for the simplest case.</p>
+
+<h2>Render</h2>
+
+<p><code>parse()</code> returns a <code>Document</code>. The four operations you'll use most often:</p>
+
+<pre><code class="language-python">doc.to_json(indent=2)   # str — the structured tree, for transport
+doc.to_markdown()       # str — canonical Markdown, for editing UIs
+doc.to_html()           # str — HTML, for server-side rendering
+doc.to_dict()           # dict — the raw underlying tree</code></pre>
+
+<h2>Inspect warnings</h2>
+
+<p>The parser never raises on bad content. If something is invalid for client rendering (an image inside a heading, an unknown widget, …), it emits a <em>diagnostic</em>:</p>
+
+<pre><code class="language-python">doc = parse("# ![alt](logo.png)")
+for w in doc.warnings:
+    print(w["code"], w["message"])
+# W001  Image inside h1 heading — alt text used as content.</code></pre>
+
+<div class="callout callout-tip">
+    <div class="callout-icon">!</div>
+    <div class="callout-body">
+        <strong>Diagnostics never block parsing.</strong> Whatever is reported, you still get a valid AST you can ship. The full diagnostic catalogue lives in the <a href="./extending.html">Extending</a> chapter.
+    </div>
+</div>
+
+<h2>Use a registered widget</h2>
+
+<p>markast comes with several widgets pre-registered. The most common are admonitions:</p>
+
+<pre><code class="language-python">from markast import parse
+
+md = """
+:::tip title="Pro tip"
+You can nest **markdown** here.
+:::
+"""
+
+doc = parse(md)
+print(doc.to_html())
+# &lt;aside class="admonition admonition-tip"&gt;&lt;header&gt;Pro tip&lt;/header&gt;
+#   &lt;div class="admonition-body"&gt;&lt;p&gt;You can nest &lt;strong&gt;markdown&lt;/strong&gt; here.&lt;/p&gt;&lt;/div&gt;
+# &lt;/aside&gt;</code></pre>
+
+<p>Other built-ins: <code>note</code>, <code>info</code>, <code>warning</code>, <code>caution</code>, <code>danger</code>, <code>card</code>, <code>video</code>, <code>code-group</code>, <code>code-collapse</code>, <code>tabs</code>, <code>steps</code>, <code>badge</code>. Read on in the <a href="./widgets.html">Widgets</a> chapter for the full catalogue and how to write your own.</p>
+
+<h2>Where to go next</h2>
+
+<ul>
+    <li><a href="./ast-reference.html">AST reference</a> — every node type and its fields.</li>
+    <li><a href="./widgets.html">Widgets</a> — built-ins and custom widgets.</li>
+    <li><a href="./client-integration.html">Client integration</a> — patterns for any front-end stack.</li>
+</ul>
+                <div class="page-footer">
+                    <a href="./index.html" class="footer-prev">Overview</a>
+                    <a href="./ast-reference.html" class="footer-next">AST reference</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>On this page</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>

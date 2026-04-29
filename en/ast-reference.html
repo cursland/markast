@@ -1,0 +1,208 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AST reference — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../es/ast-reference.html" data-lang="es" title="Spanish">ES</a>
+            <a class="nav-btn" href="./ast-reference.html" data-lang="en" aria-pressed="true" title="English">EN</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentation</h4>
+        <a href="./index.html">Overview</a>
+        <a href="./getting-started.html">Getting started</a>
+        <a href="./ast-reference.html">AST reference</a>
+        <h4>Concepts</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transforms</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker & utilities</a>
+        <h4>Integration</h4>
+        <a href="./client-integration.html">Client integration</a>
+        <a href="./extending.html">Extending</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>AST reference</h1>
+<p class="lede">Specification for every node type the parser can produce. Use this chapter when you write a client renderer.</p>
+
+<h2>Document (root)</h2>
+
+<pre><code class="language-json">{
+  "type":     "document",
+  "version":  "1.0",
+  "warnings": [ {"code": "W001", "message": "...", "context": "..."} ],
+  "children": [ /* block nodes */ ],
+  "meta":     {}
+}</code></pre>
+
+<table>
+    <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+    <tbody>
+    <tr><td><code>version</code></td><td>string</td><td>Bumped on breaking shape changes. Currently <code>"1.0"</code>.</td></tr>
+    <tr><td><code>warnings</code></td><td>array</td><td>List of diagnostic dicts. Always present (may be empty).</td></tr>
+    <tr><td><code>children</code></td><td>array</td><td>Block nodes. Always present (may be empty).</td></tr>
+    <tr><td><code>meta</code></td><td>object</td><td>Open-ended bag for transforms (TOC, slug map, …). May be absent.</td></tr>
+    </tbody>
+</table>
+
+<h2>Block nodes</h2>
+
+<h3>heading</h3>
+<pre><code class="language-json">{ "type": "heading", "level": 2, "children": [ /* inline */ ], "id": "section-id" }</code></pre>
+<ul>
+    <li><code>level</code> ∈ 1–6.</li>
+    <li><code>id</code> is added by the <code>slugify</code> transform; absent otherwise.</li>
+    <li>Inline children are restricted (rule W001). Images become alt text.</li>
+</ul>
+
+<h3>paragraph</h3>
+<pre><code class="language-json">{ "type": "paragraph", "children": [ /* inline */ ] }</code></pre>
+
+<h3>blockquote</h3>
+<pre><code class="language-json">{ "type": "blockquote", "children": [ /* block */ ] }</code></pre>
+
+<h3>code_block</h3>
+<pre><code class="language-json">{
+  "type":            "code_block",
+  "language":        "python",
+  "value":           "print('hi')",
+  "filename":        "main.py",
+  "highlight_lines": [1, 3, 4, 5]
+}</code></pre>
+<p><code>filename</code> and <code>highlight_lines</code> are omitted when absent.</p>
+
+<h3>image (block-level)</h3>
+<pre><code class="language-json">{ "type": "image", "src": "https://...", "alt": "description", "title": null }</code></pre>
+<p>Produced when a Markdown source line contains exactly one image and nothing else. Mixed lines yield <code>inline_image</code> instead.</p>
+
+<h3>list</h3>
+<pre><code class="language-json">{
+  "type":     "list",
+  "ordered":  false,
+  "start":    1,
+  "children": [ /* list_item */ ]
+}</code></pre>
+<p><code>start</code> is only present on ordered lists.</p>
+
+<h3>list_item</h3>
+<pre><code class="language-json">{
+  "type":     "list_item",
+  "checked":  true,
+  "children": [ /* block or inline */ ]
+}</code></pre>
+<p><code>checked</code> is <code>true</code>/<code>false</code> for GFM tasklist items, absent for plain items.</p>
+
+<h3>table, table_row, table_cell</h3>
+<pre><code class="language-json">{
+  "type": "table",
+  "head": { "type": "table_head", "rows": [ /* row */ ] },
+  "body": { "type": "table_body", "rows": [ /* row */ ] }
+}</code></pre>
+<pre><code class="language-json">{
+  "type":      "table_cell",
+  "is_header": true,
+  "align":     "center",
+  "children":  [ /* inline */ ]
+}</code></pre>
+<p><code>align</code> ∈ <code>"left"</code> | <code>"center"</code> | <code>"right"</code> | <code>null</code>. Block content inside cells is forbidden (rule W002).</p>
+
+<h3>divider</h3>
+<pre><code class="language-json">{ "type": "divider" }</code></pre>
+
+<h3>widget</h3>
+<pre><code class="language-json">{
+  "type":   "widget",
+  "widget": "tip",
+  "props":  { "title": "Pro tip" },
+  "slots":  {
+    "default": [ /* block nodes */ ],
+    "footer":  [ /* block nodes */ ]
+  }
+}</code></pre>
+<p><code>slots</code> always contains a <code>"default"</code> key (possibly an empty array). See the <a href="./widgets.html">Widgets</a> chapter.</p>
+
+<h3>html_block</h3>
+<pre><code class="language-json">{ "type": "html_block", "value": "&lt;div&gt;raw html&lt;/div&gt;" }</code></pre>
+<p>The parser does not interpret HTML — it passes blocks through verbatim and emits a W007 informational diagnostic.</p>
+
+<h3>footnote_def</h3>
+<pre><code class="language-json">{ "type": "footnote_def", "label": "1", "children": [ /* block */ ] }</code></pre>
+
+<h2>Inline nodes</h2>
+
+<table>
+    <thead><tr><th>Type</th><th>Fields</th></tr></thead>
+    <tbody>
+        <tr><td><code>text</code></td><td><code>value</code> (string)</td></tr>
+        <tr><td><code>bold</code></td><td><code>children</code></td></tr>
+        <tr><td><code>italic</code></td><td><code>children</code></td></tr>
+        <tr><td><code>bold_italic</code></td><td><code>children</code></td></tr>
+        <tr><td><code>code_inline</code></td><td><code>value</code></td></tr>
+        <tr><td><code>strikethrough</code></td><td><code>children</code></td></tr>
+        <tr><td><code>underline</code></td><td><code>children</code></td></tr>
+        <tr><td><code>link</code></td><td><code>href</code>, <code>title</code> (or <code>null</code>), <code>children</code></td></tr>
+        <tr><td><code>inline_image</code></td><td><code>src</code>, <code>alt</code>, <code>title</code></td></tr>
+        <tr><td><code>softbreak</code></td><td>—</td></tr>
+        <tr><td><code>hardbreak</code></td><td>—</td></tr>
+        <tr><td><code>footnote_ref</code></td><td><code>label</code></td></tr>
+    </tbody>
+</table>
+
+<h2>JSON Schema export</h2>
+
+<p>The <code>markast.json_schema()</code> function returns a JSON-Schema describing all of the above. Drop the output into a JSON-Schema validator on your client to enforce shape compatibility, or feed it into a code generator for typed models.</p>
+
+<pre><code class="language-python">import json
+from markast import json_schema
+
+with open("ast.schema.json", "w") as f:
+    json.dump(json_schema(), f, indent=2)</code></pre>
+                <div class="page-footer">
+                    <a href="./getting-started.html" class="footer-prev">Getting started</a>
+                    <a href="./widgets.html" class="footer-next">Widgets</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>On this page</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>

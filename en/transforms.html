@@ -1,0 +1,145 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Transforms — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../es/transforms.html" data-lang="es" title="Spanish">ES</a>
+            <a class="nav-btn" href="./transforms.html" data-lang="en" aria-pressed="true" title="English">EN</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentation</h4>
+        <a href="./index.html">Overview</a>
+        <a href="./getting-started.html">Getting started</a>
+        <a href="./ast-reference.html">AST reference</a>
+        <h4>Concepts</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transforms</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker & utilities</a>
+        <h4>Integration</h4>
+        <a href="./client-integration.html">Client integration</a>
+        <a href="./extending.html">Extending</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>Transforms</h1>
+<p class="lede">AST-to-AST mutations applied after parsing and before serialisation. They bake in cross-cutting behaviour without polluting the parser or renderer.</p>
+
+<h2>Built-in transforms</h2>
+
+<table>
+    <thead><tr><th>Identifier</th><th>Class</th><th>What it does</th></tr></thead>
+    <tbody>
+    <tr><td><code>normalize</code></td><td><code>NormalizeText</code></td><td>Merge adjacent text nodes, drop empty ones.</td></tr>
+    <tr><td><code>slugify</code></td><td><code>SlugifyHeadings</code></td><td>Add a stable <code>id</code> to every heading.</td></tr>
+    <tr><td><code>toc</code></td><td><code>BuildTOC</code></td><td>Build a nested table-of-contents in <code>doc.meta["toc"]</code>. Requires <code>slugify</code>.</td></tr>
+    <tr><td><code>linkify</code></td><td><code>Linkify</code></td><td>Convert bare URLs in text to <code>link</code> nodes.</td></tr>
+    <tr><td><code>smarttypography</code></td><td><code>SmartTypography</code></td><td>Replace dashes/quotes/ellipses with typographic equivalents.</td></tr>
+    </tbody>
+</table>
+
+<p>Apply them by name when constructing a parser:</p>
+
+<pre><code class="language-python">from markast import Parser
+
+parser = Parser(transforms=["normalize", "slugify", "toc"])
+doc = parser.parse("# Top\n\n## Sub\n\n# Top2")
+
+print(doc.meta["toc"])
+# [
+#   {"level": 1, "text": "Top",  "id": "top",  "children": [
+#       {"level": 2, "text": "Sub", "id": "sub", "children": []}
+#   ]},
+#   {"level": 1, "text": "Top2", "id": "top2", "children": []}
+# ]</code></pre>
+
+<h2>Order matters</h2>
+
+<p>Transforms run in the order you list them. <code>toc</code> reads ids set by <code>slugify</code>, so <code>slugify</code> must come first.</p>
+
+<h2>Writing a custom transform</h2>
+
+<pre><code class="language-python">from markast.transforms import Transform
+from markast.ast import replace
+from markast import NodeType
+
+
+class StripDividers(Transform):
+    """Remove every horizontal rule from the document."""
+
+    name = "strip-dividers"
+
+    def apply(self, doc, config):
+        return replace(doc, lambda n: None if n.get("type") == NodeType.DIVIDER else n)</code></pre>
+
+<p>Register it:</p>
+
+<pre><code class="language-python">parser = Parser(transforms=[StripDividers])</code></pre>
+
+<div class="callout callout-tip">
+    <div class="callout-icon">!</div>
+    <div class="callout-body">Three things to remember: (1) receive and return a document, (2) use <code>markast.ast.replace</code> for rewrites — it handles every container shape correctly, (3) use <code>doc["meta"]</code> to expose computed data rather than rewriting the tree to fit it.</div>
+</div>
+
+<h2>Transforms vs. rules</h2>
+
+<table>
+    <thead><tr><th></th><th>Transform</th><th>Rule (<code>markast.rules</code>)</th></tr></thead>
+    <tbody>
+    <tr><td><strong>When</strong></td><td>After parsing, before rendering</td><td>During parsing</td></tr>
+    <tr><td><strong>What</strong></td><td>Mutates / annotates the AST</td><td>Observes and reports diagnostics</td></tr>
+    <tr><td><strong>Side effect</strong></td><td>Changes the output</td><td>Adds entries to <code>doc.warnings</code></td></tr>
+    <tr><td><strong>Use for</strong></td><td>Slugs, TOCs, autolinks, normalisation</td><td>Cross-cutting validation, lints</td></tr>
+    </tbody>
+</table>
+
+<p>Pick a rule when you want to <em>flag</em> something. Pick a transform when you want to <em>change</em> something.</p>
+                <div class="page-footer">
+                    <a href="./widgets.html" class="footer-prev">Widgets</a>
+                    <a href="./renderers.html" class="footer-next">Renderers</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>On this page</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>

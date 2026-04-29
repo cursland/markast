@@ -1,0 +1,184 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Walker & utilities — markast</title>
+        <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+        <link rel="stylesheet" href="../assets/main.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    </head>
+    <body>
+
+    <nav class="nav">
+        <button class="nav-toggle" aria-label="Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </button>
+        <a class="nav-brand" href="./index.html">
+            <img class="nav-brand-mark" src="../assets/favicon.svg" alt="" aria-hidden="true">
+            markast <small>v1.0</small>
+        </a>
+        <span class="nav-spacer"></span>
+        <div class="nav-actions">
+            <a class="nav-btn" href="../es/walker.html" data-lang="es" title="Spanish">ES</a>
+            <a class="nav-btn" href="./walker.html" data-lang="en" aria-pressed="true" title="English">EN</a>
+            <button class="nav-btn" data-theme-toggle aria-label="Toggle dark mode" aria-pressed="false">
+                <span class="icon-sun" style="display:inline">☀</span>
+                <span class="icon-moon" style="display:none">☾</span>
+            </button>
+            <a class="nav-btn" href="https://github.com/cursland/markast" title="GitHub">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.8 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.2 1.2.9-.3 1.9-.4 3-.4s2 .1 3 .4c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.9.1 3.2.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+            </a>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop"></div>
+
+    <div class="shell">
+        <aside class="sidebar">
+            <h4>Documentation</h4>
+        <a href="./index.html">Overview</a>
+        <a href="./getting-started.html">Getting started</a>
+        <a href="./ast-reference.html">AST reference</a>
+        <h4>Concepts</h4>
+        <a href="./widgets.html">Widgets</a>
+        <a href="./transforms.html">Transforms</a>
+        <a href="./renderers.html">Renderers</a>
+        <a href="./walker.html">Walker & utilities</a>
+        <h4>Integration</h4>
+        <a href="./client-integration.html">Client integration</a>
+        <a href="./extending.html">Extending</a>
+        </aside>
+
+        <main class="main">
+            <article class="content">
+    <h1>Walker &amp; utilities</h1>
+<p class="lede">The <code>markast.ast</code> package exposes traversal primitives so you can inspect or rewrite the tree without writing recursion against every container shape.</p>
+
+<h2>walk(node) — generator</h2>
+
+<pre><code class="language-python">from markast import parse, walk
+
+doc = parse("# Hi\n\nA **bold** word.")
+for node in walk(doc.root):
+    print(node["type"])
+# document
+# heading
+# text
+# paragraph
+# text
+# bold
+# text</code></pre>
+
+<p>The walker visits nodes in <strong>document order</strong> (depth-first, pre-order). It follows every container key (<code>children</code>, <code>slots</code>, <code>head</code>, <code>body</code>, <code>rows</code>, <code>cells</code>), so widgets and tables aren't skipped.</p>
+
+<p><code>walk(node, include_root=False)</code> skips the starting node and only yields descendants.</p>
+
+<h2>find(node, type_) and find_all(node, type_)</h2>
+
+<pre><code class="language-python">from markast import find, find_all, parse
+
+doc = parse("# A\n\n## B\n\n## C")
+print(find(doc.root, "heading")["children"][0]["value"])      # A
+print([h["children"][0]["value"] for h in find_all(doc.root, "heading")])
+# ["A", "B", "C"]</code></pre>
+
+<p>Both accept a string type or a list of types:</p>
+
+<pre><code class="language-python">find_all(doc.root, ["link", "inline_image"])</code></pre>
+
+<h2>Visitor — class-based dispatch</h2>
+
+<pre><code class="language-python">from markast import Visitor, parse
+
+
+class HeadingCollector(Visitor):
+    def __init__(self):
+        self.headings = []
+
+    def visit_heading(self, node):
+        self.headings.append(node)
+
+
+v = HeadingCollector()
+v.run(parse("# A\n\n## B"))
+print(len(v.headings))  # 2</code></pre>
+
+<p>Override <code>visit_&lt;node_type&gt;</code> for any node type you want to react to. Methods may return a value, which <code>run()</code> collects into a list.</p>
+
+<h2>replace(node, fn) — functional rewrite</h2>
+
+<p><code>replace</code> walks the tree and applies <code>fn</code> to every node, substituting each with whatever <code>fn</code> returns. Returning <code>None</code> <em>removes</em> the node:</p>
+
+<pre><code class="language-python">from markast import NodeType, parse, replace
+
+doc = parse("# Title\n\n---\n\nBody.")
+trimmed = replace(doc.root, lambda n: None if n.get("type") == NodeType.DIVIDER else n)</code></pre>
+
+<p>Returning a brand-new node is fine — the walker continues into the <em>replacement's</em> children, not the original's. This makes one-pass rewrites trivial:</p>
+
+<pre><code class="language-python">def lowercase_text(node):
+    if node.get("type") == "text":
+        return {"type": "text", "value": node["value"].lower()}
+    return node
+
+
+lowered = replace(doc.root, lowercase_text)</code></pre>
+
+<p>Pass <code>in_place=True</code> to mutate the existing dict tree if you need to keep object identity. Otherwise, the default behaviour is to return a fresh tree.</p>
+
+<h2>extract_text(node)</h2>
+
+<p>Shortcut for "give me the plain-text projection of this subtree":</p>
+
+<pre><code class="language-python">from markast import extract_text, parse
+
+doc = parse("# Hello **world**")
+print(extract_text(doc.children[0]))
+# "Hello world"</code></pre>
+
+<p>It walks <code>children</code>, <code>slots</code>, and table rows/cells, so widgets and tables contribute too.</p>
+
+<h2>count_nodes(node)</h2>
+
+<pre><code class="language-python">from markast import count_nodes, parse
+
+doc = parse("# A\n\n## B\n\n- x\n- y")
+print(count_nodes(doc.root))
+# {'document': 1, 'heading': 2, 'text': 4, 'list': 1, 'list_item': 2, ...}</code></pre>
+
+<h2>Cheat-sheet</h2>
+
+<table>
+    <thead><tr><th>Goal</th><th>Use</th></tr></thead>
+    <tbody>
+    <tr><td>Iterate every node, do something</td><td><code>walk</code></td></tr>
+    <tr><td>Find the first / all of a kind</td><td><code>find</code> / <code>find_all</code></td></tr>
+    <tr><td>Extract data into a list</td><td><code>Visitor</code></td></tr>
+    <tr><td>Mutate a copy of the tree</td><td><code>replace</code></td></tr>
+    <tr><td>Mutate in place</td><td><code>replace(..., in_place=True)</code></td></tr>
+    <tr><td>Get plain text</td><td><code>extract_text</code></td></tr>
+    <tr><td>Tally node types</td><td><code>count_nodes</code></td></tr>
+    </tbody>
+</table>
+
+<p>Mental model: <em>the AST is just dicts.</em> The walker is the only non-trivial part of using it; everything else is dictionary manipulation.</p>
+                <div class="page-footer">
+                    <a href="./renderers.html" class="footer-prev">Renderers</a>
+                    <a href="./client-integration.html" class="footer-next">Client integration</a>
+                </div>
+            </article>
+        </main>
+
+        <aside class="toc">
+            <h5>On this page</h5>
+            <nav class="toc-list"></nav>
+        </aside>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="../assets/main.js"></script>
+
+    </body>
+    </html>
