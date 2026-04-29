@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>markast — Markdown to typed AST</title>
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+    <script>
+        // Auto-redirect based on stored preference or browser language.
+        (function () {
+            var stored = localStorage.getItem("markast-lang");
+            var browser = (navigator.language || "en").toLowerCase().slice(0, 2);
+            var lang = stored || (browser === "es" ? "es" : "en");
+            location.replace("./" + lang + "/");
+        })();
+    </script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fafaf9; color: #18181b; display: grid; place-items: center; min-height: 100vh; margin: 0; }
+        a { color: #6d52ff; }
+        .picker { text-align: center; padding: 20px; }
+        .picker h1 { font-size: 28px; margin: 0 0 24px; }
+        .picker a { display: inline-block; padding: 10px 22px; margin: 0 6px; border-radius: 10px; background: white; border: 1px solid #e5e5e5; text-decoration: none; color: #18181b; }
+    </style>
+</head>
+<body>
+    <noscript>
+        <div class="picker">
+            <h1>markast docs</h1>
+            <a href="./en/">English</a>
+            <a href="./es/">Español</a>
+        </div>
+    </noscript>
+</body>
+</html>
