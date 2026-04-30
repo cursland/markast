@@ -40,7 +40,7 @@ class InlineBuilder:
 
             if t == "text":
                 if tok.content:
-                    out.append(F.text(tok.content))
+                    out.extend(_expand_literal_newlines(tok.content))
                 i += 1
 
             elif t == "code_inline":
@@ -49,12 +49,20 @@ class InlineBuilder:
 
             elif t == "strong_open":
                 j, inner = _slice(itoks, i, "strong_open", "strong_close")
-                out.append(F.bold(self.build(inner)))
+                built = self.build(inner)
+                if _is_single_wrapper(built, T.ITALIC):
+                    out.append(F.bold_italic(built[0].get("children", [])))
+                else:
+                    out.append(F.bold(built))
                 i = j
 
             elif t == "em_open":
                 j, inner = _slice(itoks, i, "em_open", "em_close")
-                out.append(F.italic(self.build(inner)))
+                built = self.build(inner)
+                if _is_single_wrapper(built, T.BOLD):
+                    out.append(F.bold_italic(built[0].get("children", [])))
+                else:
+                    out.append(F.italic(built))
                 i = j
 
             elif t == "s_open":
@@ -102,6 +110,41 @@ class InlineBuilder:
         # Compress adjacent text spans — markdown-it occasionally emits
         # consecutive ``text`` tokens that we can merge for cleaner output.
         return _merge_adjacent_text(out), i
+
+
+def _expand_literal_newlines(text: str) -> List[Dict[str, Any]]:
+    """Split ``text`` on literal ``\\n`` sequences (backslash + lowercase n),
+    emitting a ``hardbreak`` node for each occurrence. This lets authors write
+    explicit line breaks that survive whitespace-normalising transports
+    (CMSes, JSON encoders, copy-paste through editors that collapse blanks).
+    The literal form roundtrips through the AST as a real hardbreak."""
+    if "\\n" not in text:
+        return [F.text(text)] if text else []
+
+    out: List[Dict[str, Any]] = []
+    pos = 0
+    i = 0
+    n = len(text)
+    while i < n:
+        if text[i] == "\\" and i + 1 < n and text[i + 1] == "n":
+            if i > pos:
+                out.append(F.text(text[pos:i]))
+            while i + 1 < n and text[i] == "\\" and text[i + 1] == "n":
+                out.append(F.hardbreak())
+                i += 2
+            pos = i
+        else:
+            i += 1
+    if pos < n:
+        out.append(F.text(text[pos:]))
+    return out
+
+
+def _is_single_wrapper(nodes: List[Dict[str, Any]], wrapped_type: str) -> bool:
+    """True when ``nodes`` is exactly one node of ``wrapped_type``. Used to
+    collapse ``strong > em`` (or ``em > strong``) into a single ``bold_italic``
+    node so renderers can style the combination distinctly."""
+    return len(nodes) == 1 and nodes[0].get("type") == wrapped_type
 
 
 def _slice(
