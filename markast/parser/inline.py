@@ -109,7 +109,10 @@ class InlineBuilder:
 
         # Compress adjacent text spans — markdown-it occasionally emits
         # consecutive ``text`` tokens that we can merge for cleaner output.
-        return _merge_adjacent_text(out), i
+        # Then drop softbreaks that touch a hardbreak: an explicit ``\n``
+        # literal at end of a source line should *replace* the implicit
+        # softbreak from the trailing newline, not stack with it.
+        return _drop_softbreak_next_to_hardbreak(_merge_adjacent_text(out)), i
 
 
 def _expand_literal_newlines(text: str) -> List[Dict[str, Any]]:
@@ -165,6 +168,26 @@ def _slice(
             inner.append(itoks[j])
         j += 1
     return j, inner
+
+
+def _drop_softbreak_next_to_hardbreak(nodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Remove softbreaks that sit immediately before or after a hardbreak.
+
+    When an author writes literal ``\\n`` at the end of a source line, the
+    parser sees both the explicit hardbreak (from ``\\n``) and an implicit
+    softbreak (from the line's terminating newline). The explicit form is
+    the author's intent, so the softbreak is consumed.
+    """
+    n = len(nodes)
+    out: List[Dict[str, Any]] = []
+    for idx, node in enumerate(nodes):
+        if node.get("type") == T.SOFTBREAK:
+            prev_hard = bool(out) and out[-1].get("type") == T.HARDBREAK
+            next_hard = idx + 1 < n and nodes[idx + 1].get("type") == T.HARDBREAK
+            if prev_hard or next_hard:
+                continue
+        out.append(node)
+    return out
 
 
 def _merge_adjacent_text(nodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
