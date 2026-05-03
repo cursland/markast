@@ -194,8 +194,11 @@ def bold_italic(children: List[Dict[str, Any]]) -> Dict[str, Any]:
     return {"type": T.BOLD_ITALIC, "children": children}
 
 
-def code_inline(value: str) -> Dict[str, Any]:
-    return {"type": T.CODE_INLINE, "value": value}
+def code_inline(value: str, *, language: Optional[str] = None) -> Dict[str, Any]:
+    node: Dict[str, Any] = {"type": T.CODE_INLINE, "value": value}
+    if language:
+        node["language"] = language
+    return node
 
 
 def link(

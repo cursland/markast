@@ -18,10 +18,60 @@ caller didn't enable it, the parser uses the default ``bold`` mapping and
 underline-text is never produced.
 """
 from __future__ import annotations
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..ast import factory as F
 from ..ast import types as T
+
+# Language identifiers accepted as a prefix in inline code (e.g. `python:code`).
+# Anything not in this set — like `test:`, `url:`, `key:` — falls through as
+# plain inline code without a language tag.
+_KNOWN_LANGUAGES: frozenset = frozenset({
+    # Web
+    "html", "css", "javascript", "js", "typescript", "ts",
+    "jsx", "tsx", "vue", "svelte", "astro",
+    # General purpose / backend
+    "python", "py", "ruby", "rb", "php", "perl", "lua",
+    "java", "kotlin", "scala", "groovy",
+    "swift", "objc",
+    "go", "rust", "zig", "nim", "crystal",
+    "c", "cpp", "csharp", "cs", "fsharp", "fs",
+    "dart", "r",
+    # Shell / scripting
+    "bash", "sh", "zsh", "fish", "powershell", "ps1", "bat",
+    # Data / config
+    "json", "yaml", "yml", "toml", "xml", "csv", "ini",
+    # Query / API
+    "sql", "graphql", "gql",
+    # Markup / docs
+    "markdown", "md", "latex", "tex", "rst",
+    # Build / infra
+    "dockerfile", "docker", "makefile", "cmake",
+    "nginx", "apache", "terraform",
+    # Other languages
+    "haskell", "ocaml", "erlang", "elixir", "clojure",
+    "julia", "matlab", "fortran",
+    # Misc
+    "diff", "patch", "proto", "regex",
+    "asm", "wasm",
+    "text", "plain",
+    "solidity",
+})
+
+_LANG_PREFIX_RE = re.compile(r'^([a-z][a-z0-9+#\-]*):(.*)', re.DOTALL)
+
+
+def _split_lang(content: str) -> Tuple[Optional[str], str]:
+    """Extract an optional language prefix from inline code content.
+
+    Returns ``(language, code)`` when the content starts with a known language
+    identifier followed by ``:``, otherwise ``(None, content)`` unchanged.
+    """
+    m = _LANG_PREFIX_RE.match(content)
+    if m and m.group(1) in _KNOWN_LANGUAGES:
+        return m.group(1), m.group(2)
+    return None, content
 
 
 class InlineBuilder:
@@ -44,7 +94,8 @@ class InlineBuilder:
                 i += 1
 
             elif t == "code_inline":
-                out.append(F.code_inline(tok.content))
+                lang, code = _split_lang(tok.content)
+                out.append(F.code_inline(code, language=lang))
                 i += 1
 
             elif t == "strong_open":
