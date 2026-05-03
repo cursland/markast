@@ -23,6 +23,7 @@ from typing import IO, List, Optional
 from . import (
     HTMLRenderer, MarkdownRenderer, Parser, default_registry, json_schema,
 )
+from .__version__ import __version__
 
 
 def _read_input(source: str) -> str:
@@ -78,6 +79,11 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="markast",
         description="Parse Markdown into a structured AST and render it.",
+    )
+    p.add_argument(
+        "-V", "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     sub = p.add_subparsers(dest="command", required=True)
 
